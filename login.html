@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-auth.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('loginbg.png');
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            
+        }
+
+        .container {
+          color:white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0px 6px rgba(255, 255, 255, 0.1);
+            text-align: center;
+            width: 260px;
+            backdrop-filter: blur(20px);
+        }
+
+        .container h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .container input {
+          background:transparent;
+            width: 90%;
+            padding: 10px;
+            margin-bottom: 15px;
+            color:white;
+            outline: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            
+        }
+.container input:focus {
+  background: transparent;
+  width: 90%;
+  padding: 10px;
+  margin-bottom: 15px;
+  color: white;
+  outline: none;
+  border: 3px solid #ccc;
+  border-radius: 4px;
+
+}
+        .container button {
+            width: 100%;
+            padding: 10px;
+            background-color: forestgreen;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .container button:hover {
+            background-color: darkgreen;
+        }
+
+        .toggle-button {
+            margin-top: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            color: forestgreen;
+        }
+         .toggle-button:hover {
+  text-decoration: underline;
+ }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            display: none;
+        }
+      
+
+    </style>
+</head>
+<body>
+    <div class="container" id="auth-container">
+        <h1 id="form-title">Login</h1>
+        <div class="error-message" id="error-message"></div>
+        <input type="text" class="input" id="name" placeholder="name" style="display:none">
+        <input type="email" class="input" id="email" placeholder="Email">
+        <input type="password" class="input" id="password" placeholder="password">
+        <button id="auth-button">Login</button>
+        <div class="toggle-button" id="toggle-auth"> dont have a Account? register</div>
+    </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCOPQ7tSTnIIXb_KTPSTG5EsPt93jueIDc",
+    authDomain: "minecraftsite-674c0.firebaseapp.com",
+    databaseURL: "https://minecraftsite-674c0-default-rtdb.firebaseio.com",
+    projectId: "minecraftsite-674c0",
+    storageBucket: "minecraftsite-674c0.appspot.com",
+    messagingSenderId: "887046137131",
+    appId: "1:887046137131:web:b2aacefcb1887a8079916e",
+    measurementId: "G-XXREEL86JM"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const authContainer = document.getElementById("auth-container");
+  const formTitle = document.getElementById("form-title");
+  const authButton = document.getElementById("auth-button");
+  const toggleAuth = document.getElementById("toggle-auth");
+  const nameInput = document.getElementById("name");
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const errorMessage = document.getElementById("error-message");
+
+  let isRegistering = false;
+
+  // Verificar se o usuário já está logado
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // Redirecionar para o dashboard se já estiver logado
+      window.location.href = "index.html";
+    }
+  });
+
+  toggleAuth.addEventListener("click", () => {
+    isRegistering = !isRegistering;
+    if (isRegistering) {
+      formTitle.textContent = "Register";
+      authButton.textContent = "Register";
+      toggleAuth.textContent = "alread have a Account? Login";
+      nameInput.style.display = "block"; 
+      document.title = "Register"// Exibe o campo de nome no registro
+    } else {
+      formTitle.textContent = "Login";
+      authButton.textContent = "Login";
+      toggleAuth.textContent = "dont have a Account? register";
+      nameInput.style.display = "none"; 
+      document.title = "Login"// Esconde o campo de nome no login
+    }
+    console.log(isRegistering);
+  });
+
+  authButton.addEventListener("click", () => {
+    const name = nameInput.value;
+    const email = emailInput.value;
+    const password = passwordInput.value;
+
+    errorMessage.style.display = "none";
+
+    if (isRegistering) {
+      // Registro de usuário
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          // Atualizar o nome do usuário após o registro
+          updateProfile(user, { displayName: name })
+            .then(() => {
+             errorMessage.textContent = "<p style=' color:green:'>Register suceesful<p>"
+              window.location.href = "index.html";
+            })
+            .catch((error) => {
+              console.error(error);
+              errorMessage.textContent = "Error to Register" ;
+              errorMessage.style.display = "block";
+            });
+        })
+        .catch((error) => {
+          console.error(error);
+          errorMessage.textContent = "Error to Register" ;
+          errorMessage.style.display = "block";
+        });
+    } else {
+      // Login do usuário
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          errorMessage.textContent = "<p style=' color:green:'>Login suceesful<p>"
+          window.location.href = "index.html";
+        })
+        .catch((error) => {
+          console.error(error);
+          errorMessage.textContent = "error to Login"
+          errorMessage.style.display = "block";
+        });
+    }
+  });
+  
+  if (typeof window.location.href === 'string' &&
+  window.location.href.includes('#')) {
+    isRegistering = !isRegistering;
+    
+   formTitle.textContent = "Register";
+   authButton.textContent = "Register";
+   toggleAuth.textContent = "alread have a Account? Login";
+   nameInput.style.display = "block"; // Exibe o campo de nome no registro
+document.title = "Register"
+  } else {
+    
+  }
+  
+  console.log(isRegistering);
+</script>
+
+
+</body>
+</html>
